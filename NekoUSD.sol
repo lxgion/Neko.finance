@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 pragma solidity ^0.8.13;
+import "./Nekofi.sol";
 
 contract NekoUSD {
     mapping (address => uint256) public balanceOf;
@@ -9,6 +10,7 @@ contract NekoUSD {
     uint8 public decimals = 18;
     address public owner;
     address public motherContract;
+    Nekofi public fi = motherContract;
 
     uint256 public totalSupply = 1000000 * (uint256(10) ** decimals);
 
@@ -17,6 +19,11 @@ contract NekoUSD {
         emit Transfer(address(0), msg.sender, totalSupply);
         owner = msg.sender;
         motherContract = _contract;
+    }
+
+    struct usdPool {
+        uint256 nekoSide;
+        uint256 nekoUSDSide;
     }
 
     event Transfer(address indexed from, address indexed to, uint256 value);
@@ -53,12 +60,24 @@ contract NekoUSD {
         emit Transfer(from, to, value);
         return true;
     }
-    
+
     event Redemption(address indexed sender, uint256 value);
 
     function redemption(address sender, uint256 value) public returns (bool success) {
         balanceOf[sender] += value;
         emit Redemption(sender, value);
+        return true;
+    }
+
+    function getPoolData() public returns (usdPool) {
+        return motherContract.returnPool;
+    }
+
+    function redeem(uint256 amount) public returns (bool success) {
+        balanceOf[msg.sender] -= amount;
+        amount.nekoUSDSide += amount;
+        emit Transfer(msg.sender, address(motherContract), amount);
+        fi.redemption(msg.sender, amount);
         return true;
     }
 

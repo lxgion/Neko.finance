@@ -12,6 +12,7 @@ contract Nekofi {
     address public NekoGuard = 0x0000000000000000000000000000000000000000;
     address public owner;
     NekoUSD public nekousd;
+    usdPool public pool;
 
     uint256 public totalSupply = 1000000 * (uint256(10) ** decimals);
 
@@ -25,6 +26,11 @@ contract Nekofi {
     modifier ownerOnly {
         require(msg.sender == owner);
         _;
+    }
+
+    struct usdPool {
+        uint256 nekoSide;
+        uint256 nekoUSDSide;
     }
 
     event Transfer(address indexed from, address indexed to, uint256 value);
@@ -70,16 +76,28 @@ contract Nekofi {
 
     function redeem(uint256 amount) public returns (bool success) {
         balanceOf[msg.sender] -= amount;
-        balanceOf[NekoGuard] += amount;
-        emit Transfer(msg.sender, NekoGuard, amount);
+        pool.nekoSide += amount;
         emit Transfer(msg.sender, address(nekousd), amount);
         nekousd.redemption(msg.sender, amount);
         return true;
+    }
+
+    event Redemption(address indexed sender, uint256 value);
+
+    function redemption(address sender, uint256 value) public returns (bool success) {
+        balanceOf[sender] += value;
+        emit Redemption(sender, value);
+        return true;
+    }
+
+    function returnPool() public returns (usdPool) {
+        return pool;
     }
 
     receive() payable external {
         balanceOf[NekoGuard] += msg.value;
         emit Transfer(msg.sender, NekoGuard, msg.value);
     }
+
 
 }
