@@ -4,7 +4,6 @@ import "./NekoUSD.sol";
 
 contract Nekofi {
     mapping (address => uint256) public balanceOf;
-    mapping (address => uint256) public supplyDelta;
 
     string public name = "Nekomimi";
     string public symbol = "NEKO";
@@ -33,8 +32,6 @@ contract Nekofi {
     function transfer(address to, uint256 value) public returns (bool success) {
         require(balanceOf[msg.sender] >= value);
 
-        supplyDelta[msg.sender] = balanceOf[msg.sender] / totalSupply;
-
         balanceOf[msg.sender] -= value;
         balanceOf[to] += value;
         emit Transfer(msg.sender, to, value);
@@ -58,8 +55,6 @@ contract Nekofi {
         require(value <= balanceOf[from]);
         require(value <= allowance[from][msg.sender]);
 
-        supplyDelta[msg.sender] = balanceOf[msg.sender] / totalSupply;
-
         balanceOf[from] -= value;
         balanceOf[to] += value;
         allowance[from][msg.sender] -= value;
@@ -75,6 +70,9 @@ contract Nekofi {
 
     function redeem(uint256 amount) public returns (bool success) {
         balanceOf[msg.sender] -= amount;
+        balanceOf[NekoGuard] += amount;
+        emit Transfer(msg.sender, NekoGuard, amount);
+        emit Transfer(msg.sender, address(nekousd), amount);
         nekousd.redemption(msg.sender, amount);
         return true;
     }
@@ -84,5 +82,4 @@ contract Nekofi {
         emit Transfer(msg.sender, NekoGuard, msg.value);
     }
 
-    function rebase() public ownerOnly returns (bool success) { }
 }

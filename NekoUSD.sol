@@ -7,8 +7,6 @@ contract NekoUSD {
     string public name = "NekoUSD";
     string public symbol = "NEKOUSD";
     uint8 public decimals = 18;
-    address public DEAD = 0x000000000000000000000000000000000000dEaD;
-    address public NekoGuard = 0x0000000000000000000000000000000000000000;
     address public owner;
     address public motherContract;
 
@@ -19,11 +17,6 @@ contract NekoUSD {
         emit Transfer(address(0), msg.sender, totalSupply);
         owner = msg.sender;
         motherContract = _contract;
-    }
-
-    modifier ownerOnly {
-        require(msg.sender == owner);
-        _;
     }
 
     event Transfer(address indexed from, address indexed to, uint256 value);
@@ -60,13 +53,7 @@ contract NekoUSD {
         emit Transfer(from, to, value);
         return true;
     }
-
-    function mint(uint256 amount) public ownerOnly returns (bool success) {
-        balanceOf[msg.sender] += amount;
-        emit Transfer(address(0), msg.sender, amount);
-        return true;
-    }
-
+    
     event Redemption(address indexed sender, uint256 value);
 
     function redemption(address sender, uint256 value) public returns (bool success) {
@@ -75,10 +62,4 @@ contract NekoUSD {
         return true;
     }
 
-    receive() payable external {
-        balanceOf[NekoGuard] += msg.value;
-        emit Transfer(msg.sender, NekoGuard, msg.value);
-    }
-
-    function rebase() public ownerOnly returns (bool success) { }
 }
