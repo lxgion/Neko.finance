@@ -78,7 +78,6 @@ contract NekoUSD {
 
     function fundPool(uint256 value) public returns (bool success) {
         require(balanceOf[msg.sender] >= value);
-        ownerContract.fundUSDPool(value);
         balanceOf[msg.sender] -= value;
         emit Transfer(msg.sender, owner, value);
         return true;

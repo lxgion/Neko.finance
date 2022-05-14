@@ -105,7 +105,12 @@ contract Nekofi {
     }
 
     function fundUSDPool(uint256 value) nekoUSDOnly public returns (bool success) {
-        nekoUSDSide += value;
+        if(nekousd.fundPool(value)) {
+            nekoUSDSide += value;
+        }
+        else {
+            return false;
+        }
         return true;
     }
 }
