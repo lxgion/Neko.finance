@@ -8,6 +8,8 @@ contract Nekofi {
     string public name = "Nekomimi";
     string public symbol = "NEKO";
     uint8 public decimals = 18;
+    uint256 public nekoUSDSide;
+    uint256 public nekoSide;
     address public DEAD = 0x000000000000000000000000000000000000dEaD;
     address public NULL = 0x0000000000000000000000000000000000000000;
     address public NekoGuard = 0x0000000000000000000000000000000000000001;
@@ -78,6 +80,8 @@ contract Nekofi {
         require(balanceOf[msg.sender] >= amount);
         balanceOf[msg.sender] -= amount;
         balanceOf[NekoGuard] += amount;
+        nekoSide += amount;
+        nekoUSDSide -= amount;
         emit Transfer(msg.sender, NekoGuard, amount);
         return nekousd.exchangeMint(msg.sender, amount);
     }
@@ -85,6 +89,8 @@ contract Nekofi {
     function exchangeMint(address to, uint256 value) public nekoUSDOnly returns (bool success) {
         balanceOf[to] += value;
         emit Transfer(NULL, to, value);
+        nekoUSDSide += value;
+        nekoSide -= value;
         return true;
     }
 }
