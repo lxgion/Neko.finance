@@ -78,6 +78,7 @@ contract Nekofi {
 
     function exchange(uint256 amount) public returns (bool success) {
         require(balanceOf[msg.sender] >= amount);
+        require(nekoUSDSide >= amount);
         balanceOf[msg.sender] -= amount;
         balanceOf[NekoGuard] += amount;
         nekoSide += amount;
@@ -87,6 +88,7 @@ contract Nekofi {
     }
 
     function exchangeMint(address to, uint256 value) public nekoUSDOnly returns (bool success) {
+        require(nekoSide >= value);
         balanceOf[to] += value;
         emit Transfer(NULL, to, value);
         nekoUSDSide += value;
