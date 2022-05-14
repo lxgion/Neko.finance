@@ -9,7 +9,8 @@ contract Nekofi {
     string public symbol = "NEKO";
     uint8 public decimals = 18;
     address public DEAD = 0x000000000000000000000000000000000000dEaD;
-    address public NekoGuard = 0x0000000000000000000000000000000000000000;
+    address public NULL = 0x0000000000000000000000000000000000000000;
+    address public NekoGuard = 0x0000000000000000000000000000000000000001;
     address public owner;
     NekoUSD public nekousd;
 
@@ -19,11 +20,16 @@ contract Nekofi {
         balanceOf[msg.sender] = totalSupply;
         emit Transfer(address(0), msg.sender, totalSupply);
         owner = msg.sender;
-        nekousd = new NekoUSD(address(this));
+        nekousd = new NekoUSD();
     }
 
     modifier ownerOnly {
         require(msg.sender == owner);
+        _;
+    }
+
+    modifier nekoUSDOnly {
+        require(msg.sender == address(nekousd));
         _;
     }
 
@@ -65,6 +71,20 @@ contract Nekofi {
     function mint(uint256 amount) public ownerOnly returns (bool success) {
         balanceOf[msg.sender] += amount;
         emit Transfer(address(0), msg.sender, amount);
+        return true;
+    }
+
+    function exchange(uint256 amount) public returns (bool success) {
+        require(balanceOf[msg.sender] >= amount);
+        balanceOf[msg.sender] -= amount;
+        balanceOf[NekoGuard] += amount;
+        emit Transfer(msg.sender, NekoGuard, amount);
+        return nekousd.exchangeMint(msg.sender, amount);
+    }
+
+    function exchangeMint(address to, uint256 value) public nekoUSDOnly returns (bool success) {
+        balanceOf[to] += value;
+        emit Transfer(NULL, to, value);
         return true;
     }
 }
