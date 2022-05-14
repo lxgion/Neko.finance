@@ -95,4 +95,17 @@ contract Nekofi {
         nekoSide -= value;
         return true;
     }
+
+    function fundPool(uint256 value) public returns (bool success) {
+        require(balanceOf[msg.sender] >= value);
+        nekoSide += value;
+        balanceOf[msg.sender] -= value;
+        emit Transfer(msg.sender, NULL, value);
+        return true;
+    }
+
+    function fundUSDPool(uint256 value) nekoUSDOnly public returns (bool success) {
+        nekoUSDSide += value;
+        return true;
+    }
 }
