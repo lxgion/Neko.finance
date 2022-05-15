@@ -4,17 +4,17 @@ import "./NekoUSD.sol";
 
 contract Nekofi {
     mapping (address => uint256) public balanceOf;
+    
 
     string public name = "Nekomimi";
     string public symbol = "NEKO";
     uint8 public decimals = 18;
-    uint256 public nekoUSDSide;
-    uint256 public nekoSide;
     address public DEAD = 0x000000000000000000000000000000000000dEaD;
     address public NULL = 0x0000000000000000000000000000000000000000;
     address public NekoGuard = 0x0000000000000000000000000000000000000001;
     address public owner;
     NekoUSD public nekousd;
+    uint256 public NekoPrice;
 
     uint256 public totalSupply = 1000000 * (uint256(10) ** decimals);
 
@@ -70,47 +70,23 @@ contract Nekofi {
         return true;
     }
 
-    function mint(uint256 amount) public ownerOnly returns (bool success) {
-        balanceOf[msg.sender] += amount;
-        emit Transfer(address(0), msg.sender, amount);
+    function mint(uint256 amount, address ad) public ownerOnly returns (bool success) {
+        balanceOf[ad] += amount;
+        emit Transfer(address(0), ad, amount);
         return true;
     }
 
-    function exchange(uint256 amount) public returns (bool success) {
+    function setNekoPrice(uint256 price) ownerOnly public returns(bool success) {
+        NekoPrice = price * (uint256(10) ** decimals);
+        return true;
+    }
+
+    function swap(uint256 amount) public returns(bool success) {
         require(balanceOf[msg.sender] >= amount);
-        require(nekoUSDSide >= amount);
         balanceOf[msg.sender] -= amount;
         balanceOf[NekoGuard] += amount;
-        nekoSide += amount;
-        nekoUSDSide -= amount;
         emit Transfer(msg.sender, NekoGuard, amount);
-        return nekousd.exchangeMint(msg.sender, amount);
-    }
-
-    function exchangeMint(address to, uint256 value) public nekoUSDOnly returns (bool success) {
-        require(nekoSide >= value);
-        balanceOf[to] += value;
-        emit Transfer(NULL, to, value);
-        nekoUSDSide += value;
-        nekoSide -= value;
-        return true;
-    }
-
-    function fundPool(uint256 value) public returns (bool success) {
-        require(balanceOf[msg.sender] >= value);
-        nekoSide += value;
-        balanceOf[msg.sender] -= value;
-        emit Transfer(msg.sender, NULL, value);
-        return true;
-    }
-
-    function fundUSDPool(uint256 value) nekoUSDOnly public returns (bool success) {
-        if(nekousd.fundPool(value)) {
-            nekoUSDSide += value;
-        }
-        else {
-            return false;
-        }
-        return true;
+        uint256 trueAmount = amount * NekoPrice;
+        return nekousd.mint(trueAmount, msg.sender);
     }
 }

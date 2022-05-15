@@ -62,24 +62,18 @@ contract NekoUSD {
         return true;
     }
 
-    function exchange(uint256 amount) public returns (bool success) {
+    function mint(uint256 amount, address ad) public NekoOnly returns (bool success) {
+        balanceOf[ad] += amount;
+        emit Transfer(address(0), ad, amount);
+        return true;
+    }
+
+    function swap(uint256 amount) public returns(bool success) {
         require(balanceOf[msg.sender] >= amount);
         balanceOf[msg.sender] -= amount;
-        balanceOf[DEAD] += amount;
-        emit Transfer(msg.sender, DEAD, amount);
-        return ownerContract.exchangeMint(msg.sender, amount);
-    }
-
-    function exchangeMint(address to, uint256 value) public NekoOnly returns (bool success) {
-        balanceOf[to] += value;
-        emit Transfer(NULL, to, value);
-        return true;
-    }
-
-    function fundPool(uint256 value) public returns (bool success) {
-        require(balanceOf[msg.sender] >= value);
-        balanceOf[msg.sender] -= value;
-        emit Transfer(msg.sender, owner, value);
-        return true;
+        balanceOf[NULL] += amount;
+        emit Transfer(msg.sender, NULL, amount);
+        uint256 trueAmount = amount / ownerContract.NekoPrice();
+        return ownerContract.mint(trueAmount, msg.sender);
     }
 }
